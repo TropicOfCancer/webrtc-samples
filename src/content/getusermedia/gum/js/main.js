@@ -6,6 +6,9 @@
  *  tree.
  */
 'use strict';
+navigator.getUserMedia = navigator.getUserMedia ||
+  navigator.webkitGetUserMedia ||
+  navigator.mozGetUserMedia;
 
 // Put variables in global scope to make them available to the browser console.
 const constraints = window.constraints = {
@@ -44,9 +47,20 @@ function errorMsg(msg, error) {
 
 async function init(e) {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    handleSuccess(stream);
-    e.target.disabled = true;
+    if (navigator.mediaDevices.getUserMedia) {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      handleSuccess(stream);
+      e.target.disabled = true;
+      return;
+    }
+
+    if (navigator.getUserMedia) {
+      navigator.getUserMedia(
+          constraints,
+          handleSuccess,
+          handleError,
+      );
+    }
   } catch (e) {
     handleError(e);
   }
